@@ -80,7 +80,7 @@
       }
       this.update_calendar();
       return $('#calendar_view_modal').modal().on('hide', function() {
-        return window.location = '/';
+        return window.location = window.location;
       });
     };
 
@@ -126,7 +126,7 @@
               end: _this.format_date(task.due + 1500)
             };
             if (hash.start < moment().sod().toDate()) {
-              hash.textColor = '#ff0000';
+              hash.textColor = '#ff0000 !important';
             }
             if (task.has_due_time) {
               hash.allDay = false;

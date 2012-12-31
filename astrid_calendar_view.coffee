@@ -62,7 +62,7 @@ class CalendarView
 
     @update_calendar()
     $('#calendar_view_modal').modal().on 'hide', =>
-      window.location = '/'
+      window.location = window.location
 
 
   event_drop: (event, dayDelta, minuteDelta, allDay, revertFunc, jsEvent, ui, view) =>
@@ -105,7 +105,7 @@ class CalendarView
             end: @format_date(task.due + 1500) # ends at time + one pomodoro
 
           if hash.start < moment().sod().toDate()
-            hash.textColor = '#ff0000'
+            hash.textColor = '#ff0000 !important'
 
           if task.has_due_time
             hash.allDay = false
