@@ -126,7 +126,7 @@
               end: _this.format_date(task.due + 1500)
             };
             if (hash.start < moment().sod().toDate()) {
-              hash.textColor = 'red';
+              hash.textColor = '#ff0000';
             }
             if (task.has_due_time) {
               hash.allDay = false;
