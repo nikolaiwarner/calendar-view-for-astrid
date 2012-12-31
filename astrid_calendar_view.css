@@ -1,0 +1,22 @@
+#calendar_view_modal.modal {
+  width: 95%;
+  height: 95%;
+  left: 2.5%;
+  top: 2.5%;
+  margin: 0;
+}
+
+#calendar_view_modal.modal .modal-body {
+  max-height: inherit;
+}
+
+#calendar_view_alerts {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+}
+.calendar_view_alert {
+  position: relative;
+  margin: 0 auto;
+  width: 50%;
+}
