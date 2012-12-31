@@ -98,10 +98,19 @@ class CalendarView
         tasks = response.list || []
 
         @events = tasks.map (task) =>
-          task: task
-          title: task.title
-          start: @format_date(task.due)
-          end: @format_date(task.due)
+          hash =
+            task: task
+            title: task.title
+            start: @format_date(task.due)
+            end: @format_date(task.due + 1500) # ends at time + one pomodoro
+
+          if hash.start < moment().sod().toDate()
+            hash.textColor = '#ff0000'
+
+          if task.has_due_time
+            hash.allDay = false
+
+          return hash
 
         #console.log "Task count:", response.list.length
         #console.log "@events", @events

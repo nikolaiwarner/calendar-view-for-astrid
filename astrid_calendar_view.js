@@ -118,12 +118,20 @@
           var tasks;
           tasks = response.list || [];
           _this.events = tasks.map(function(task) {
-            return {
+            var hash;
+            hash = {
               task: task,
               title: task.title,
               start: _this.format_date(task.due),
-              end: _this.format_date(task.due)
+              end: _this.format_date(task.due + 1500)
             };
+            if (hash.start < moment().sod().toDate()) {
+              hash.textColor = 'red';
+            }
+            if (task.has_due_time) {
+              hash.allDay = false;
+            }
+            return hash;
           });
           return $('.calendar_view').fullCalendar('render');
         });
