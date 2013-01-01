@@ -66,8 +66,9 @@ class CalendarView
     @update_calendar()
     $('#calendar_view_modal').modal().on 'hide', =>
       # hack to refresh Astrid's page and keep you in context
-      history.back()
-      setTimeout((-> history.forward()), 100)
+      #history.back()
+      #setTimeout((-> history.forward()), 100)
+      window.location = '/'
 
 
   event_drop: (event, dayDelta, minuteDelta, allDay, revertFunc, jsEvent, ui, view) =>
@@ -117,8 +118,8 @@ class CalendarView
 
           return hash
 
-        console.log "Task count:", response.list.length
-        console.log "@events", @events
+        #console.log "Task count:", response.list.length
+        #console.log "@events", @events
 
         $('.calendar_view').fullCalendar('render')
     else

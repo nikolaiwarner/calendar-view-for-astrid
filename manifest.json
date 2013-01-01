@@ -1,6 +1,6 @@
 {
   "name": "Calendar View for Astrid",
-  "version": "1.0",
+  "version": "1.1.1",
   "manifest_version": 2,
   "description": "Adds a drag and droppable calendar view for task rescheduling on Astrid.com",
   "content_scripts": [
@@ -13,5 +13,10 @@
   "web_accessible_resources": ["moment.min.js", "astrid-api.js", "fullcalendar.min.js", "astrid_calendar_view.js"],
   "permissions": [
     "http://astrid.com/"
-  ]
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
 }

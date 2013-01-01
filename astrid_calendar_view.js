@@ -84,10 +84,7 @@
       }
       this.update_calendar();
       return $('#calendar_view_modal').modal().on('hide', function() {
-        history.back();
-        return setTimeout((function() {
-          return history.forward();
-        }), 100);
+        return window.location = '/';
       });
     };
 
@@ -139,8 +136,6 @@
             }
             return hash;
           });
-          console.log("Task count:", response.list.length);
-          console.log("@events", _this.events);
           return $('.calendar_view').fullCalendar('render');
         });
       } else {
