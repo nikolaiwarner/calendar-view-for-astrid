@@ -24,6 +24,8 @@
 
       this.events = __bind(this.events, this);
 
+      this.set_task_css = __bind(this.set_task_css, this);
+
       this.update_calendar = __bind(this.update_calendar, this);
 
       this.format_date = __bind(this.format_date, this);
@@ -87,10 +89,10 @@
     CalendarView.prototype.event_drop = function(event, dayDelta, minuteDelta, allDay, revertFunc, jsEvent, ui, view) {
       var new_timestamp;
       new_timestamp = moment(event.start).unix();
-      return this.change_task_date(event.task, new_timestamp);
+      return this.change_task_date(event.task, new_timestamp, revertFunc);
     };
 
-    CalendarView.prototype.change_task_date = function(task, new_timestamp) {
+    CalendarView.prototype.change_task_date = function(task, new_timestamp, failure) {
       var has_due_time, task_data;
       task_data = {
         id: parseInt(task.id, 10),
@@ -100,7 +102,7 @@
       if (has_due_time !== task.has_due_time) {
         task_data.has_due_time = has_due_time;
       }
-      return this.task_save(task_data, this.update_calendar);
+      return this.task_save(task_data, this.update_calendar, failure);
     };
 
     CalendarView.prototype.click_day = function() {};
@@ -125,14 +127,14 @@
               start: _this.format_date(task.due),
               end: _this.format_date(task.due + 1500)
             };
-            if (hash.start < moment().sod().toDate()) {
-              hash.textColor = '#ff0000 !important';
-            }
+            hash = _this.set_task_css(hash);
             if (task.has_due_time) {
               hash.allDay = false;
             }
             return hash;
           });
+          console.log("Task count:", response.list.length);
+          console.log("@events", _this.events);
           return $('.calendar_view').fullCalendar('render');
         });
       } else {
@@ -141,17 +143,28 @@
       }
     };
 
+    CalendarView.prototype.set_task_css = function(hash, classnames) {
+      if (classnames == null) {
+        classnames = [];
+      }
+      if (hash.start < moment().sod().toDate()) {
+        classnames.push('overdue');
+      }
+      hash.className = classnames;
+      return hash;
+    };
+
     CalendarView.prototype.events = function(start, end, callback) {
       this.events || (this.events = []);
       return callback(this.events);
     };
 
-    CalendarView.prototype.task_save = function(task, callback) {
+    CalendarView.prototype.task_save = function(task, success, failure) {
       var _this = this;
-      return this.astrid.sendRequest('task_save', task, function() {
+      return this.astrid.sendRequest('task_save', task, (function() {
         _this.show_alert('Saved Task!');
-        return callback();
-      });
+        return success();
+      }), failure);
     };
 
     CalendarView.prototype.show_alert = function(message, type, timeout) {

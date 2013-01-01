@@ -67,10 +67,10 @@ class CalendarView
 
   event_drop: (event, dayDelta, minuteDelta, allDay, revertFunc, jsEvent, ui, view) =>
     new_timestamp = moment(event.start).unix()
-    @change_task_date(event.task, new_timestamp)
+    @change_task_date(event.task, new_timestamp, revertFunc)
 
 
-  change_task_date: (task, new_timestamp)=>
+  change_task_date: (task, new_timestamp, failure)=>
     task_data =
       id: parseInt(task.id, 10)
       due: new_timestamp
@@ -79,7 +79,7 @@ class CalendarView
     if has_due_time != task.has_due_time
       task_data.has_due_time = has_due_time
 
-    @task_save task_data, @update_calendar
+    @task_save task_data, @update_calendar, failure
 
 
   click_day: () =>
@@ -104,16 +104,15 @@ class CalendarView
             start: @format_date(task.due)
             end: @format_date(task.due + 1500) # ends at time + one pomodoro
 
-          if hash.start < moment().sod().toDate()
-            hash.textColor = '#ff0000 !important'
+          hash = @set_task_css(hash)
 
           if task.has_due_time
             hash.allDay = false
 
           return hash
 
-        #console.log "Task count:", response.list.length
-        #console.log "@events", @events
+        console.log "Task count:", response.list.length
+        console.log "@events", @events
 
         $('.calendar_view').fullCalendar('render')
     else
@@ -121,15 +120,26 @@ class CalendarView
       $('.calendar_view_sign_in').show()
 
 
+  set_task_css: (hash, classnames=[]) =>
+    if hash.start < moment().sod().toDate()
+      classnames.push('overdue')
+
+    hash.className = classnames
+    return hash
+
+
   events: (start, end, callback) =>
     @events ||= []
     callback(@events)
 
 
-  task_save: (task, callback) =>
-    @astrid.sendRequest 'task_save', task, =>
+  task_save: (task, success, failure) =>
+    @astrid.sendRequest 'task_save', task, (=>
       @show_alert('Saved Task!')
-      callback()
+      success() if success
+    ), =>
+      @show_alert('Task could not be saved.', 'error')
+      failure() if failure
 
 
   show_alert: (message, type='success', timeout=5000) =>
