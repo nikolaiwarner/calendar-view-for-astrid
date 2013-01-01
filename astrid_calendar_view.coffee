@@ -19,7 +19,8 @@ class CalendarView
     <div id="calendar_view_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div id="calendar_view_alerts"></div>
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <span data-dismiss="modal" aria-hidden="true" class="pull-right">Close</span>
+        <span id="calendar_view_sign_out_submit" class="pull-right">Sign Out</span>
         <h3 id="myModalLabel">Calendar View for Astrid</h3>
       </div>
       <div class="modal-body">
@@ -42,6 +43,7 @@ class CalendarView
     $('body').append(html)
 
     $('#calendar_view_sign_in_submit').click(@submit_sign_in)
+    $('#calendar_view_sign_out_submit').click(@sign_out)
 
     $('.calendar_view').fullCalendar
       header:
@@ -51,6 +53,7 @@ class CalendarView
       aspectRatio: 2.5
       editable: true
       disableResizing: true
+      allDayText: 'Any time'
       events: @events
       eventDrop: @event_drop
       #dayClick: @click_day
@@ -62,7 +65,9 @@ class CalendarView
 
     @update_calendar()
     $('#calendar_view_modal').modal().on 'hide', =>
-      window.location = window.location
+      # hack to refresh Astrid's page and keep you in context
+      history.back()
+      setTimeout((-> history.forward()), 100)
 
 
   event_drop: (event, dayDelta, minuteDelta, allDay, revertFunc, jsEvent, ui, view) =>
@@ -93,6 +98,7 @@ class CalendarView
     if @is_signed_in()
       $('.calendar_view').show()
       $('.calendar_view_sign_in').hide()
+      $('#calendar_view_sign_out_submit').show()
 
       @astrid.sendRequest 'task_list', {}, (response) =>
         tasks = response.list || []
@@ -118,6 +124,7 @@ class CalendarView
     else
       $('.calendar_view').hide()
       $('.calendar_view_sign_in').show()
+      $('#calendar_view_sign_out_submit').hide()
 
 
   set_task_css: (hash, classnames=[]) =>
@@ -183,7 +190,7 @@ class CalendarView
     localStorage.removeItem("astrid-token")
     @astrid.setToken(undefined)
     @update_calendar()
-    callback()
+    callback() if callback
 
 
   is_signed_in: =>

@@ -58,9 +58,10 @@
 
     CalendarView.prototype.build_calendar = function() {
       var html;
-      html = "<div id=\"calendar_view_modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"myModalLabel\" aria-hidden=\"true\">\n  <div id=\"calendar_view_alerts\"></div>\n  <div class=\"modal-header\">\n    <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n    <h3 id=\"myModalLabel\">Calendar View for Astrid</h3>\n  </div>\n  <div class=\"modal-body\">\n    <div class=\"calendar_view\"></div>\n    <div class=\"calendar_view_sign_in\">\n      <h2>\n        Sign In to Astrid\n        <small>to use Calendar View for Astrid</small>\n      </h2>\n      <label for=\"calendar_view_sign_in_username\">Username</label>\n      <input type=\"text\" id=\"calendar_view_sign_in_username\">\n      <label for=\"calendar_view_sign_in_password\">Password</label>\n      <input type=\"password\" id=\"calendar_view_sign_in_password\">\n      <br>\n      <input type=\"submit\" class=\"btn btn-primary\" value=\"Sign In to Astrid\" id=\"calendar_view_sign_in_submit\">\n    </div>\n  </div>\n</div>";
+      html = "<div id=\"calendar_view_modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"myModalLabel\" aria-hidden=\"true\">\n  <div id=\"calendar_view_alerts\"></div>\n  <div class=\"modal-header\">\n    <span data-dismiss=\"modal\" aria-hidden=\"true\" class=\"pull-right\">Close</span>\n    <span id=\"calendar_view_sign_out_submit\" class=\"pull-right\">Sign Out</span>\n    <h3 id=\"myModalLabel\">Calendar View for Astrid</h3>\n  </div>\n  <div class=\"modal-body\">\n    <div class=\"calendar_view\"></div>\n    <div class=\"calendar_view_sign_in\">\n      <h2>\n        Sign In to Astrid\n        <small>to use Calendar View for Astrid</small>\n      </h2>\n      <label for=\"calendar_view_sign_in_username\">Username</label>\n      <input type=\"text\" id=\"calendar_view_sign_in_username\">\n      <label for=\"calendar_view_sign_in_password\">Password</label>\n      <input type=\"password\" id=\"calendar_view_sign_in_password\">\n      <br>\n      <input type=\"submit\" class=\"btn btn-primary\" value=\"Sign In to Astrid\" id=\"calendar_view_sign_in_submit\">\n    </div>\n  </div>\n</div>";
       $('body').append(html);
       $('#calendar_view_sign_in_submit').click(this.submit_sign_in);
+      $('#calendar_view_sign_out_submit').click(this.sign_out);
       return $('.calendar_view').fullCalendar({
         header: {
           left: 'prev,next today',
@@ -70,6 +71,7 @@
         aspectRatio: 2.5,
         editable: true,
         disableResizing: true,
+        allDayText: 'Any time',
         events: this.events,
         eventDrop: this.event_drop
       });
@@ -82,7 +84,10 @@
       }
       this.update_calendar();
       return $('#calendar_view_modal').modal().on('hide', function() {
-        return window.location = window.location;
+        history.back();
+        return setTimeout((function() {
+          return history.forward();
+        }), 100);
       });
     };
 
@@ -116,6 +121,7 @@
       if (this.is_signed_in()) {
         $('.calendar_view').show();
         $('.calendar_view_sign_in').hide();
+        $('#calendar_view_sign_out_submit').show();
         return this.astrid.sendRequest('task_list', {}, function(response) {
           var tasks;
           tasks = response.list || [];
@@ -139,7 +145,8 @@
         });
       } else {
         $('.calendar_view').hide();
-        return $('.calendar_view_sign_in').show();
+        $('.calendar_view_sign_in').show();
+        return $('#calendar_view_sign_out_submit').hide();
       }
     };
 
@@ -163,8 +170,15 @@
       var _this = this;
       return this.astrid.sendRequest('task_save', task, (function() {
         _this.show_alert('Saved Task!');
-        return success();
-      }), failure);
+        if (success) {
+          return success();
+        }
+      }), function() {
+        _this.show_alert('Task could not be saved.', 'error');
+        if (failure) {
+          return failure();
+        }
+      });
     };
 
     CalendarView.prototype.show_alert = function(message, type, timeout) {
@@ -222,7 +236,9 @@
       localStorage.removeItem("astrid-token");
       this.astrid.setToken(void 0);
       this.update_calendar();
-      return callback();
+      if (callback) {
+        return callback();
+      }
     };
 
     CalendarView.prototype.is_signed_in = function() {
