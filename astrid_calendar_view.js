@@ -58,7 +58,7 @@
 
     CalendarView.prototype.build_calendar = function() {
       var html;
-      html = "<div id=\"calendar_view_modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"myModalLabel\" aria-hidden=\"true\">\n  <div id=\"calendar_view_alerts\"></div>\n  <div class=\"modal-header\">\n    <span data-dismiss=\"modal\" aria-hidden=\"true\" class=\"pull-right\">Close</span>\n    <span id=\"calendar_view_sign_out_submit\" class=\"pull-right\">Sign Out</span>\n    <h3 id=\"myModalLabel\">Calendar View for Astrid</h3>\n  </div>\n  <div class=\"modal-body\">\n    <div class=\"calendar_view\"></div>\n    <div class=\"calendar_view_sign_in\">\n      <h2>\n        Sign In to Astrid\n        <small>to use Calendar View for Astrid</small>\n      </h2>\n      <label for=\"calendar_view_sign_in_username\">Username</label>\n      <input type=\"text\" id=\"calendar_view_sign_in_username\">\n      <label for=\"calendar_view_sign_in_password\">Password</label>\n      <input type=\"password\" id=\"calendar_view_sign_in_password\">\n      <br>\n      <input type=\"submit\" class=\"btn btn-primary\" value=\"Sign In to Astrid\" id=\"calendar_view_sign_in_submit\">\n    </div>\n  </div>\n</div>";
+      html = "<div id=\"calendar_view_modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"myModalLabel\" aria-hidden=\"true\">\n  <div id=\"calendar_view_alerts\"></div>\n  <div class=\"modal-header\">\n    <span data-dismiss=\"modal\" aria-hidden=\"true\" class=\"pull-right\">Close</span>\n    <span id=\"calendar_view_sign_out_submit\" class=\"pull-right\">Sign Out</span>\n    <span class=\"pull-right\"><a href=\"https://chrome.google.com/webstore/support/kmddbiagkpdgldeekdakkodcfhfagdhi?hl=en&gl=US\">Feedback</a></span>\n    <h3 id=\"myModalLabel\">Calendar View for Astrid</h3>\n  </div>\n  <div class=\"modal-body\">\n    <div class=\"calendar_view\"></div>\n    <div class=\"calendar_view_sign_in\">\n      <h2>\n        Sign In to Astrid\n        <small>to use Calendar View for Astrid</small>\n      </h2>\n      <label for=\"calendar_view_sign_in_username\">Username</label>\n      <input type=\"text\" id=\"calendar_view_sign_in_username\">\n      <label for=\"calendar_view_sign_in_password\">Password</label>\n      <input type=\"password\" id=\"calendar_view_sign_in_password\">\n      <br>\n      <input type=\"submit\" class=\"btn btn-primary\" value=\"Sign In to Astrid\" id=\"calendar_view_sign_in_submit\">\n    </div>\n  </div>\n</div>";
       $('body').append(html);
       $('#calendar_view_sign_in_submit').click(this.submit_sign_in);
       $('#calendar_view_sign_out_submit').click(this.sign_out);
@@ -96,8 +96,9 @@
 
     CalendarView.prototype.change_task_date = function(task, new_timestamp, failure) {
       var has_due_time, task_data;
+      console.log('change_task_date', task, new_timestamp, failure);
       task_data = {
-        id: parseInt(task.id, 10),
+        id: task.id,
         due: new_timestamp
       };
       has_due_time = new_timestamp !== moment.unix(new_timestamp).sod().unix();
@@ -163,15 +164,19 @@
 
     CalendarView.prototype.task_save = function(task, success, failure) {
       var _this = this;
-      return this.astrid.sendRequest('task_save', task, (function() {
-        _this.show_alert('Saved Task!');
-        if (success) {
-          return success();
-        }
-      }), function() {
-        _this.show_alert('Task could not be saved.', 'error');
-        if (failure) {
-          return failure();
+      console.log(task);
+      return this.astrid.sendRequest('task_save', task, function(response) {
+        console.log(response);
+        if (response.status !== 'failure') {
+          _this.show_alert('Saved Task!');
+          if (success) {
+            return success();
+          }
+        } else {
+          _this.show_alert('Task could not be saved.', 'error');
+          if (failure) {
+            return failure();
+          }
         }
       });
     };

@@ -21,6 +21,7 @@ class CalendarView
       <div class="modal-header">
         <span data-dismiss="modal" aria-hidden="true" class="pull-right">Close</span>
         <span id="calendar_view_sign_out_submit" class="pull-right">Sign Out</span>
+        <span class="pull-right"><a href="https://chrome.google.com/webstore/support/kmddbiagkpdgldeekdakkodcfhfagdhi?hl=en&gl=US">Feedback</a></span>
         <h3 id="myModalLabel">Calendar View for Astrid</h3>
       </div>
       <div class="modal-body">
@@ -65,9 +66,7 @@ class CalendarView
 
     @update_calendar()
     $('#calendar_view_modal').modal().on 'hide', =>
-      # hack to refresh Astrid's page and keep you in context
-      #history.back()
-      #setTimeout((-> history.forward()), 100)
+      # hack to refresh Astrid's page
       window.location = '/'
 
 
@@ -77,8 +76,9 @@ class CalendarView
 
 
   change_task_date: (task, new_timestamp, failure)=>
+    console.log 'change_task_date', task, new_timestamp, failure
     task_data =
-      id: parseInt(task.id, 10)
+      id: task.id #parseInt(task.id, 10)
       due: new_timestamp
 
     has_due_time = (new_timestamp != moment.unix(new_timestamp).sod().unix())
@@ -142,12 +142,15 @@ class CalendarView
 
 
   task_save: (task, success, failure) =>
-    @astrid.sendRequest 'task_save', task, (=>
-      @show_alert('Saved Task!')
-      success() if success
-    ), =>
-      @show_alert('Task could not be saved.', 'error')
-      failure() if failure
+    console.log task
+    @astrid.sendRequest 'task_save', task, (response) =>
+      console.log response
+      if response.status != 'failure'
+        @show_alert('Saved Task!')
+        success() if success
+      else
+        @show_alert('Task could not be saved.', 'error')
+        failure() if failure
 
 
   show_alert: (message, type='success', timeout=5000) =>
