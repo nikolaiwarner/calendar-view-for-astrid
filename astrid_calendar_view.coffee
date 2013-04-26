@@ -1,6 +1,6 @@
 class CalendarView
   constructor: ->
-    SERVER = "http://astrid.com"
+    SERVER = "https://astrid.com"
     APIKEY = "bf9r3i70f5"
     SECRET = "4d9y4rmqty"
     @astrid = new Astrid(SERVER, APIKEY, SECRET)
@@ -19,32 +19,52 @@ class CalendarView
     <div id="calendar_view_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div id="calendar_view_alerts"></div>
       <div class="modal-header">
-        <span data-dismiss="modal" aria-hidden="true" class="pull-right">Close</span>
+        <span data-dismiss="modal" aria-hidden="true" class="btn pull-right">Close</span>
         <span id="calendar_view_sign_out_submit" class="pull-right">Sign Out</span>
-        <span class="pull-right"><a href="https://chrome.google.com/webstore/support/kmddbiagkpdgldeekdakkodcfhfagdhi?hl=en&gl=US">Feedback</a></span>
+        <!--<span class="pull-right"><a href="https://chrome.google.com/webstore/support/kmddbiagkpdgldeekdakkodcfhfagdhi?hl=en&gl=US" target="_blank">Feedback</a></span>
+        -->
         <h3 id="myModalLabel">Calendar View for Astrid</h3>
       </div>
       <div class="modal-body">
         <div class="calendar_view"></div>
         <div class="calendar_view_sign_in">
-          <h2>
-            Sign In to Astrid
-            <small>to use Calendar View for Astrid</small>
-          </h2>
-          <label for="calendar_view_sign_in_username">Username</label>
-          <input type="text" id="calendar_view_sign_in_username">
-          <label for="calendar_view_sign_in_password">Password</label>
-          <input type="password" id="calendar_view_sign_in_password">
-          <br>
-          <input type="submit" class="btn btn-primary" value="Sign In to Astrid" id="calendar_view_sign_in_submit">
+          <div class="row-fluid">
+            <div class="span6">
+              <h2>
+                Sign In to Astrid
+                <small>to use Calendar View for Astrid</small>
+              </h2>
+              <label for="calendar_view_sign_in_username">Email Address</label>
+              <input type="text" id="calendar_view_sign_in_username">
+              <label for="calendar_view_sign_in_password">Password</label>
+              <input type="password" id="calendar_view_sign_in_password">
+              <br>
+              <input type="submit" class="btn btn-primary" value="Sign In to Astrid" id="calendar_view_sign_in_submit">
+            </div>
+            <div class="span6">
+              <div class="well">
+                <p>
+                  Calendar View for Astrid uses your Astrid.com email address and password to log in. If you typically connect with Astrid using Facebook or Google, you will need to make an Astrid.com password in order to sign in.
+                </p>
+                <p>
+                  Need to set or forgot your Astrid.com password?
+                  <br/>
+                  <input type="text" id="calendar_view_reset_password_email" placeholder="Your Email Address">
+                  <br>
+                  <a class="btn" id="calendar_view_password_reset_button">Send Password Reset</a>
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
     """
     $('body').append(html)
 
-    $('#calendar_view_sign_in_submit').click(@submit_sign_in)
-    $('#calendar_view_sign_out_submit').click(@sign_out)
+    $('#calendar_view_sign_in_submit').click @submit_sign_in
+    $('#calendar_view_sign_out_submit').click @sign_out
+    $('#calendar_view_password_reset_button').click @send_password_reset
 
     $('.calendar_view').fullCalendar
       header:
@@ -76,15 +96,21 @@ class CalendarView
 
 
   change_task_date: (task, new_timestamp, failure)=>
-    console.log 'change_task_date', task, new_timestamp, failure
     task_data =
-      id: task.id #parseInt(task.id, 10)
+      id: task.id
       due: new_timestamp
 
     has_due_time = (new_timestamp != moment.unix(new_timestamp).sod().unix())
     if has_due_time != task.has_due_time
       task_data.has_due_time = has_due_time
 
+    @task_save task_data, @update_calendar, failure
+
+
+  complete_task: (task, failure) =>
+    task_data =
+      id: task.id
+      completed_at: Date.now()
     @task_save task_data, @update_calendar, failure
 
 
@@ -142,14 +168,12 @@ class CalendarView
 
 
   task_save: (task, success, failure) =>
-    console.log task
     @astrid.sendRequest 'task_save', task, (response) =>
-      console.log response
       if response.status != 'failure'
         @show_alert('Saved Task!')
         success() if success
       else
-        @show_alert('Task could not be saved.', 'error')
+        @show_alert("Task could not be saved. #{response.message}", 'error')
         failure() if failure
 
 
@@ -200,6 +224,16 @@ class CalendarView
   is_signed_in: =>
     @astrid.isSignedIn()
 
+
+  send_password_reset: =>
+    hash =
+      email: $('#calendar_view_reset_password_email').val()
+    @astrid.sendRequest 'user_reset_password', hash, (response) =>
+      if response.status == 'success'
+        $('#calendar_view_reset_password_email').val('')
+        @show_alert 'Astrid.com password reset link sent! Please check your email.'
+      else
+        @show_alert response.message, 'error'
 
 $ ->
   window.calendarView = new CalendarView()

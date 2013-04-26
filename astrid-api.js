@@ -165,7 +165,7 @@
       url = this.server + "/api/" + this.api + "/" + method;
       request = new this.xhr();
       request.onreadystatechange = function() {
-        var json;
+        var json, numbers, responseText;
         if (request.readyState === 4) {
           if (request.responseText === "") {
             return callback({
@@ -173,7 +173,9 @@
               message: "Empty response received from server."
             });
           } else {
-            json = Astrid.json_parse(request.responseText);
+            numbers = /("[^"]*":\s*)(\d{15,})([,}])/g;
+            responseText = request.responseText.replace(numbers, "$1\"$2\"$3");
+            json = Astrid.json_parse(responseText);
             return callback(json);
           }
         }

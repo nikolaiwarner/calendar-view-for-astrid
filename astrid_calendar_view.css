@@ -13,6 +13,9 @@
 #calendar_view_modal.modal .modal-header span:hover {
   text-decoration: underline;
 }
+#calendar_view_modal.modal .modal-header span a {
+  color: #000;
+}
 
 #calendar_view_modal.modal .modal-body {
   max-height: inherit;
@@ -21,7 +24,8 @@
 #calendar_view_alerts {
   position: absolute;
   z-index: 1;
-  width: 100%;
+  width: 90%;
+  margin-top: 10px;
 }
 .calendar_view_alert {
   position: relative;

@@ -8,6 +8,8 @@
     CalendarView.name = 'CalendarView';
 
     function CalendarView() {
+      this.send_password_reset = __bind(this.send_password_reset, this);
+
       this.is_signed_in = __bind(this.is_signed_in, this);
 
       this.sign_out = __bind(this.sign_out, this);
@@ -32,6 +34,8 @@
 
       this.click_day = __bind(this.click_day, this);
 
+      this.complete_task = __bind(this.complete_task, this);
+
       this.change_task_date = __bind(this.change_task_date, this);
 
       this.event_drop = __bind(this.event_drop, this);
@@ -43,7 +47,7 @@
       this.build_nav = __bind(this.build_nav, this);
 
       var APIKEY, SECRET, SERVER;
-      SERVER = "http://astrid.com";
+      SERVER = "https://astrid.com";
       APIKEY = "bf9r3i70f5";
       SECRET = "4d9y4rmqty";
       this.astrid = new Astrid(SERVER, APIKEY, SECRET);
@@ -58,10 +62,11 @@
 
     CalendarView.prototype.build_calendar = function() {
       var html;
-      html = "<div id=\"calendar_view_modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"myModalLabel\" aria-hidden=\"true\">\n  <div id=\"calendar_view_alerts\"></div>\n  <div class=\"modal-header\">\n    <span data-dismiss=\"modal\" aria-hidden=\"true\" class=\"pull-right\">Close</span>\n    <span id=\"calendar_view_sign_out_submit\" class=\"pull-right\">Sign Out</span>\n    <span class=\"pull-right\"><a href=\"https://chrome.google.com/webstore/support/kmddbiagkpdgldeekdakkodcfhfagdhi?hl=en&gl=US\">Feedback</a></span>\n    <h3 id=\"myModalLabel\">Calendar View for Astrid</h3>\n  </div>\n  <div class=\"modal-body\">\n    <div class=\"calendar_view\"></div>\n    <div class=\"calendar_view_sign_in\">\n      <h2>\n        Sign In to Astrid\n        <small>to use Calendar View for Astrid</small>\n      </h2>\n      <label for=\"calendar_view_sign_in_username\">Username</label>\n      <input type=\"text\" id=\"calendar_view_sign_in_username\">\n      <label for=\"calendar_view_sign_in_password\">Password</label>\n      <input type=\"password\" id=\"calendar_view_sign_in_password\">\n      <br>\n      <input type=\"submit\" class=\"btn btn-primary\" value=\"Sign In to Astrid\" id=\"calendar_view_sign_in_submit\">\n    </div>\n  </div>\n</div>";
+      html = "<div id=\"calendar_view_modal\" class=\"modal hide fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"myModalLabel\" aria-hidden=\"true\">\n  <div id=\"calendar_view_alerts\"></div>\n  <div class=\"modal-header\">\n    <span data-dismiss=\"modal\" aria-hidden=\"true\" class=\"btn pull-right\">Close</span>\n    <span id=\"calendar_view_sign_out_submit\" class=\"pull-right\">Sign Out</span>\n    <!--<span class=\"pull-right\"><a href=\"https://chrome.google.com/webstore/support/kmddbiagkpdgldeekdakkodcfhfagdhi?hl=en&gl=US\" target=\"_blank\">Feedback</a></span>\n    -->\n    <h3 id=\"myModalLabel\">Calendar View for Astrid</h3>\n  </div>\n  <div class=\"modal-body\">\n    <div class=\"calendar_view\"></div>\n    <div class=\"calendar_view_sign_in\">\n      <div class=\"row-fluid\">\n        <div class=\"span6\">\n          <h2>\n            Sign In to Astrid\n            <small>to use Calendar View for Astrid</small>\n          </h2>\n          <label for=\"calendar_view_sign_in_username\">Email Address</label>\n          <input type=\"text\" id=\"calendar_view_sign_in_username\">\n          <label for=\"calendar_view_sign_in_password\">Password</label>\n          <input type=\"password\" id=\"calendar_view_sign_in_password\">\n          <br>\n          <input type=\"submit\" class=\"btn btn-primary\" value=\"Sign In to Astrid\" id=\"calendar_view_sign_in_submit\">\n        </div>\n        <div class=\"span6\">\n          <div class=\"well\">\n            <p>\n              Calendar View for Astrid uses your Astrid.com email address and password to log in. If you typically connect with Astrid using Facebook or Google, you will need to make an Astrid.com password in order to sign in.\n            </p>\n            <p>\n              Need to set or forgot your Astrid.com password?\n              <br/>\n              <input type=\"text\" id=\"calendar_view_reset_password_email\" placeholder=\"Your Email Address\">\n              <br>\n              <a class=\"btn\" id=\"calendar_view_password_reset_button\">Send Password Reset</a>\n            </p>\n          </div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>";
       $('body').append(html);
       $('#calendar_view_sign_in_submit').click(this.submit_sign_in);
       $('#calendar_view_sign_out_submit').click(this.sign_out);
+      $('#calendar_view_password_reset_button').click(this.send_password_reset);
       return $('.calendar_view').fullCalendar({
         header: {
           left: 'prev,next today',
@@ -96,7 +101,6 @@
 
     CalendarView.prototype.change_task_date = function(task, new_timestamp, failure) {
       var has_due_time, task_data;
-      console.log('change_task_date', task, new_timestamp, failure);
       task_data = {
         id: task.id,
         due: new_timestamp
@@ -105,6 +109,15 @@
       if (has_due_time !== task.has_due_time) {
         task_data.has_due_time = has_due_time;
       }
+      return this.task_save(task_data, this.update_calendar, failure);
+    };
+
+    CalendarView.prototype.complete_task = function(task, failure) {
+      var task_data;
+      task_data = {
+        id: task.id,
+        completed_at: Date.now()
+      };
       return this.task_save(task_data, this.update_calendar, failure);
     };
 
@@ -164,16 +177,14 @@
 
     CalendarView.prototype.task_save = function(task, success, failure) {
       var _this = this;
-      console.log(task);
       return this.astrid.sendRequest('task_save', task, function(response) {
-        console.log(response);
         if (response.status !== 'failure') {
           _this.show_alert('Saved Task!');
           if (success) {
             return success();
           }
         } else {
-          _this.show_alert('Task could not be saved.', 'error');
+          _this.show_alert("Task could not be saved. " + response.message, 'error');
           if (failure) {
             return failure();
           }
@@ -243,6 +254,22 @@
 
     CalendarView.prototype.is_signed_in = function() {
       return this.astrid.isSignedIn();
+    };
+
+    CalendarView.prototype.send_password_reset = function() {
+      var hash,
+        _this = this;
+      hash = {
+        email: $('#calendar_view_reset_password_email').val()
+      };
+      return this.astrid.sendRequest('user_reset_password', hash, function(response) {
+        if (response.status === 'success') {
+          $('#calendar_view_reset_password_email').val('');
+          return _this.show_alert('Astrid.com password reset link sent! Please check your email.');
+        } else {
+          return _this.show_alert(response.message, 'error');
+        }
+      });
     };
 
     return CalendarView;

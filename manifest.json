@@ -5,14 +5,14 @@
   "description": "Adds a drag and droppable calendar view for task rescheduling on Astrid.com",
   "content_scripts": [
     {
-      "matches": ["http://astrid.com/*"],
+      "matches": ["https://astrid.com/*", "http://astrid.com/*"],
       "css": ["fullcalendar.css", "fullcalendar.print.css", "astrid_calendar_view.css"],
       "js": ["astrid_calendar_view_init.js"]
     }
   ],
   "web_accessible_resources": ["moment.min.js", "astrid-api.js", "fullcalendar.min.js", "astrid_calendar_view.js"],
   "permissions": [
-    "http://astrid.com/"
+    "https://astrid.com/", "http://astrid.com/"
   ],
   "icons": {
     "16": "icon16.png",
